@@ -44,7 +44,14 @@
 <template>
   <div class="app">
     <app-menu :handleMenu="handleMenu"></app-menu>
-    <draggable v-model="fields" @end="handleDragEnd" handle=".grab" ghost-class="ghost">
+    <draggable
+      v-model="fields"
+      @end="handleDragEnd"
+      handle=".grab"
+      ghost-class="ghost"
+      :scroll-sensitivity="200"
+      :force-fallback="true"
+    >
       <transition-group type="transition" name="flip-list">
         <div v-for="field in fields" :key="field">
           <div class="app__field">
