@@ -173,6 +173,7 @@ export default {
           this.fieldsData[id] = createField();
           break;
         case FORM_ACTIONS.SUBMIT_FORM:
+          alert("open your console plz");
           console.log(JSON.parse(JSON.stringify(this.fields)));
           console.log(JSON.parse(JSON.stringify(this.fieldsData)));
       }
