@@ -1,17 +1,19 @@
 <style>
-.sidebar {
-  width: 50px;
-  height: 300px;
+.menu {
+  display: flex;
+  margin-bottom: 10px;
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 50px;
   box-shadow: 0 2px 1px -1px rgb(0 0 0 / 20%), 0 1px 1px 0 rgb(0 0 0 / 14%),
     0 1px 3px 0 rgb(0 0 0 / 12%);
   border-radius: 5px;
-  position: absolute;
-  right: -60px;
-  top: 0;
   background: #fff;
   padding: 10px;
+  z-index: 1;
 }
-.sidebar__list {
+.menu__list {
   height: 30px;
   width: 100%;
   display: flex;
@@ -24,22 +26,22 @@
   background: #fff;
 }
 
-.sidebar__list:not(:last-child) {
+.menu__list:not(:last-child) {
   margin-bottom: 10px;
 }
 
-.sidebar__list:hover {
+.menu__list:hover {
   background: #e7ecf3;
 }
 </style>
 
 <template>
-  <div class="sidebar">
+  <div class="menu">
     <button
-      class="sidebar__list"
+      class="menu__list"
       v-for="item in actions"
       :key="item.value"
-      v-on:click="handleSideBar(item.action)"
+      v-on:click="handlemenu(item.action)"
     >
       <i v-bind:class="item.icon"></i>
     </button>
@@ -51,7 +53,7 @@ import { FORM_ACTIONS } from "../constants";
 
 export default {
   props: {
-    handleSideBar: {
+    handleMenu: {
       type: Function,
     },
   },

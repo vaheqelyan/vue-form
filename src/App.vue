@@ -43,6 +43,7 @@
 
 <template>
   <div class="app">
+    <app-menu :handleMenu="handleMenu"></app-menu>
     <draggable v-model="fields" @end="handleDragEnd" handle=".grab" ghost-class="ghost">
       <transition-group type="transition" name="flip-list">
         <div v-for="field in fields" :key="field">
@@ -65,12 +66,11 @@
         </div>
       </transition-group>
     </draggable>
-    <sidebar :handleSideBar="handleSideBar"></sidebar>
   </div>
 </template>
 
 <script>
-import SideBar from "./components/SideBar.vue";
+import Menu from "./components/Menu.vue";
 import Forms from "./components/Forms.vue";
 import draggable from "vuedraggable";
 
@@ -103,7 +103,7 @@ const createField = () => {
 export default {
   name: "App",
   components: {
-    sidebar: SideBar,
+    "app-menu": Menu,
     "form-reducer": Forms,
     draggable: draggable,
   },
@@ -165,7 +165,7 @@ export default {
       };
     },
 
-    handleSideBar(action) {
+    handleMenu(action) {
       switch (action) {
         case FORM_ACTIONS.ADD_FIELD:
           let id = uid();
