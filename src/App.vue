@@ -1,5 +1,5 @@
 <style>
-.wrapper {
+.app {
   max-width: 600px;
   width: 100%;
   min-height: 100px;
@@ -8,36 +8,71 @@
   background: transparent;
 }
 
-.card {
+.app__field {
   width: 100%;
   background: #fff;
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 5px;
+  box-shadow: 0 2px 1px -1px rgb(0 0 0 / 20%), 0 1px 1px 0 rgb(0 0 0 / 14%),
+    0 1px 3px 0 rgb(0 0 0 / 12%);
+}
+
+.app__dragHandler {
+  height: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grab {
+  cursor: grab;
+}
+
+.ghost {
+  opacity: 0.5;
+}
+
+.flip-list-move {
+  transition: transform 0.5s;
 }
 </style>
 
 <template>
-  <div class="wrapper">
-    <div v-for="field in fields" :key="field.id">
-      <div class="card">
-        <input type="text" v-model="field.questionName" />
-        <form-reducer
-          :addOption="addOption"
-          :handleDeleteItem="deleteOption"
-          :handleFieldDelete="handleFieldDelete"
-          :changeType="changeType"
-          v-bind:field="field"
-        ></form-reducer>
-      </div>
-    </div>
-    <app-sidebar :handleSideBar="handleSideBar"></app-sidebar>
+  <div class="app">
+    <draggable v-model="fields" @end="handleDragEnd" handle=".grab" ghost-class="ghost">
+      <transition-group type="transition" name="flip-list">
+        <div v-for="field in fields" :key="field">
+          <div class="app__field">
+            <div class="app__dragHandler">
+              <i class="fas fa-grip-horizontal grab"></i>
+            </div>
+
+            <input v-model="fieldsData[field].questionName" placeholder="Field name" />
+
+            <form-reducer
+              :addOption="addOption"
+              :handleDeleteItem="deleteOption"
+              :handleFieldDelete="deleteField"
+              :changeType="changeType"
+              v-bind:field="fieldsData[field]"
+              v-bind:id="field"
+            ></form-reducer>
+          </div>
+        </div>
+      </transition-group>
+    </draggable>
+    <sidebar :handleSideBar="handleSideBar"></sidebar>
   </div>
 </template>
 
 <script>
-import SideBar from "./components/CreateSide.vue";
+import SideBar from "./components/SideBar.vue";
 import Forms from "./components/Forms.vue";
+import draggable from "vuedraggable";
 
 import { FIELD_TYPE, FIELD_DATA_REF, FORM_ACTIONS } from "./constants";
 
@@ -56,11 +91,11 @@ const createOption = () => ({
 const createField = () => {
   return {
     questionName: "",
-    id: uid(),
     forms: {
       multipleChoice: [{ value: "Option 1", id: uid() }],
       shortAnswer: "",
     },
+    required: false,
     currentForm: FIELD_TYPE.SHORT_ANSWER,
   };
 };
@@ -68,78 +103,91 @@ const createField = () => {
 export default {
   name: "App",
   components: {
-    "app-sidebar": SideBar,
+    sidebar: SideBar,
     "form-reducer": Forms,
+    draggable: draggable,
   },
   data() {
     return {
       fields: [],
+      fieldsData: {},
+      oldIndex: "",
+      newIndex: "",
     };
   },
   methods: {
-    changeType(newType, id) {
-      const getField = this.fields.find(field => field.id === id);
+    changeType: function(newType, id) {
+      const getField = this.fieldsData[id];
 
       const shouldResetData =
         FIELD_DATA_REF[getField.currentForm] !== FIELD_DATA_REF[newType];
 
       const newField = createField();
 
-      this.fields = this.fields.map(value => {
-        if (value.id === id) {
-          return {
-            ...value,
-            forms: shouldResetData ? newField.forms : value.forms,
-            currentForm: newType,
-          };
-        }
-        return value;
-      });
+      this.fieldsData = {
+        ...this.fieldsData,
+        [id]: {
+          ...getField,
+          forms: shouldResetData ? newField.forms : getField.forms,
+          currentForm: newType,
+        },
+      };
     },
 
     deleteOption({ fieldId, optionId }) {
-      this.fields = this.fields.map(field => {
-        if (field.id === fieldId) {
-          return {
-            ...field,
-            forms: {
-              ...field.forms,
-              multipleChoice: field.forms.multipleChoice.filter(
-                option => option.id !== optionId,
-              ),
-            },
-          };
-        }
-        return field;
-      });
+      const getFieldData = this.fieldsData[fieldId];
+      this.fieldsData = {
+        ...this.fieldsData,
+        [fieldId]: {
+          ...getFieldData,
+          forms: {
+            ...getFieldData.forms,
+            multipleChoice: getFieldData.forms.multipleChoice.filter(
+              option => option.id !== optionId,
+            ),
+          },
+        },
+      };
     },
+
     addOption(getFieldId) {
-      this.fields = this.fields.map(field => {
-        if (field.id === getFieldId) {
-          return {
-            ...field,
-            forms: {
-              ...field.forms,
-              multipleChoice: field.forms.multipleChoice.concat(createOption()),
-            },
-          };
-        }
-        return field;
-      });
+      const getFieldData = this.fieldsData[getFieldId];
+
+      this.fieldsData = {
+        ...this.fieldsData,
+        [getFieldId]: {
+          ...getFieldData,
+          forms: {
+            ...getFieldData.forms,
+            multipleChoice: getFieldData.forms.multipleChoice.concat(createOption()),
+          },
+        },
+      };
     },
 
     handleSideBar(action) {
       switch (action) {
         case FORM_ACTIONS.ADD_FIELD:
-          this.fields.push(createField());
+          let id = uid();
+          this.fields.push(id);
+          this.fieldsData[id] = createField();
           break;
         case FORM_ACTIONS.SUBMIT_FORM:
-          console.log(this.fields);
+          console.log(JSON.parse(JSON.stringify(this.fields)));
+          console.log(JSON.parse(JSON.stringify(this.fieldsData)));
       }
     },
 
-    handleFieldDelete(fieldId) {
-      this.fields = this.fields.filter(field => field.id !== fieldId);
+    deleteField(fieldId) {
+      this.fields = this.fields.filter(field => field !== fieldId);
+      const { [fieldId]: _, ...restFields } = this.fieldsData;
+      this.fieldsData = restFields;
+    },
+
+    // -- DND--
+    handleDragEnd(ev) {
+      this.newIndex = ev.newIndex;
+      this.oldIndex = ev.oldIndex;
     },
   },
 };

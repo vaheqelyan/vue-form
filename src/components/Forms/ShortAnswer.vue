@@ -1,10 +1,7 @@
 <style></style>
 
 <template>
-  <div>
-    Short answer
-    <input type="text" />
-  </div>
+  <input type="text" placeholder="Short answer" disabled />
 </template>
 
 <script>
