@@ -41,7 +41,7 @@
       class="menu__list"
       v-for="item in actions"
       :key="item.value"
-      v-on:click="handlemenu(item.action)"
+      v-on:click="handleMenu(item.action)"
     >
       <i v-bind:class="item.icon"></i>
     </button>
